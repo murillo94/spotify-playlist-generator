@@ -1,3 +1,4 @@
+import random
 import click
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -18,24 +19,38 @@ class Auth:
         return sp
 
 
-class Search:
-    def __init__(self, authenticator, search_value='', search_type='playlist'):
+class Analyze:
+    def __init__(self, authenticator, user_id='', playlist_id='', score=0):
         self.authenticator = authenticator
-        self.search_value = search_value
-        self.search_type = search_type
+        self.user_id = user_id
+        self.playlist_id = playlist_id
+        self.score = score
 
-    def search(self):
-        results = self.authenticator.search(
-            q=self.search_type + ':' + self.search_value, type=self.search_type)
-        return results
+    def get_artist(self, list=[]):
+        results = [(x['track']['artists'][0]['id'], x['track']['popularity'])
+                   for x in list if 'track' in x]
+        sort = sorted(results, key=lambda artist: artist[1], reverse=True)
+        rand = random.choice(sort)
+        return rand
+
+    def analyze(self):
+        res = self.authenticator.user_playlist_tracks(
+            self.user_id, self.playlist_id, fields='next, items(track(name, popularity, artists(id)))')
+        tracks = res['items']
+        while res['next']:
+            res = self.authenticator.next(res)
+            tracks.extend(res['items'])
+        return self.get_artist(tracks)
 
 
 @click.command()
-@click.option('--analyze', '-a', help='Insert a playlist name to create new playlist with based songs in inserted playlist', required=True)
-def main(analyze):
+@click.option('--user', '-u', help='Insert a user id', default='12141429536', required=True)
+@click.option('--playlist', '-p', help='Insert a playlist id', default='6C9TO1dfZZQTHedI8Qv18p', required=True)
+@click.option('--score', '-s', help='Insert a score 0/100 to get assorted sounds in playlist', default=50, required=False)
+def main(user, playlist, score):
     cli_id = '30046b20b1d443cf9a9b9175e82b0970'
     cli_sec = '02bdac6c364b4b7091cbd58248473738'
 
     authenticate = Auth(cli_id, cli_sec).authenticate()
-    search = Search(authenticate, analyze, 'playlist').search()
-    print(search)
+    analyze = Analyze(authenticate, user, playlist, score).analyze()
+    print(analyze)

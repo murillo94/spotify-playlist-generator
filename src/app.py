@@ -39,6 +39,22 @@ class Analyze:
             return length
         return self.score
 
+    def find_artist_related(self, list=[]):
+        list_tracks_id = []
+        list1 = [('0WOxhx4hikIsyF3CRPLC8W', 79)]
+        for item in list1:
+            if item[0]:
+                artist = self.authenticator.artist_related_artists(item[0])
+                artist_infos = artist['artists'][0]
+                if artist_infos:
+                    for info, value in artist_infos.items():
+                        if info == 'id':
+                            tracks = self.authenticator.artist_top_tracks(
+                                value)
+                            tracks_list = tracks['tracks'][0:1]
+                            # add para list_tracks_id, fazer random e depois criar playlist e add na playlist (user_playlist_add_tracks).
+        return list_tracks_id
+
     def analyze(self):
         res = self.authenticator.user_playlist_tracks(
             self.user_id, self.playlist_id, fields='next, items(track(popularity, artists(id)))')
@@ -46,7 +62,8 @@ class Analyze:
         while res['next']:
             res = self.authenticator.next(res)
             tracks.extend(res['items'])
-        return self.get_artist(tracks)
+        artists = self.get_artist(tracks)
+        return self.find_artist_related(artists)
 
 
 @click.command()
@@ -59,4 +76,3 @@ def main(user, playlist, score):
 
     authenticate = Auth(cli_id, cli_sec).authenticate()
     analyze = Analyze(authenticate, user, playlist, score).analyze()
-    print(analyze)

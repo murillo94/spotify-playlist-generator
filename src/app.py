@@ -30,12 +30,18 @@ class Analyze:
         results = [(x['track']['artists'][0]['id'], x['track']['popularity'])
                    for x in list if 'track' in x]
         sort = sorted(results, key=lambda artist: artist[1], reverse=True)
-        rand = random.choice(sort)
+        length_list = self.get_score(len(sort))
+        rand = random.sample(sort, length_list)
         return rand
+
+    def get_score(self, length=0):
+        if self.score > length:
+            return length
+        return self.score
 
     def analyze(self):
         res = self.authenticator.user_playlist_tracks(
-            self.user_id, self.playlist_id, fields='next, items(track(name, popularity, artists(id)))')
+            self.user_id, self.playlist_id, fields='next, items(track(popularity, artists(id)))')
         tracks = res['items']
         while res['next']:
             res = self.authenticator.next(res)
@@ -46,7 +52,7 @@ class Analyze:
 @click.command()
 @click.option('--user', '-u', help='Insert a user id', default='12141429536', required=True)
 @click.option('--playlist', '-p', help='Insert a playlist id', default='6C9TO1dfZZQTHedI8Qv18p', required=True)
-@click.option('--score', '-s', help='Insert a score 0/100 to get assorted sounds in playlist', default=50, required=False)
+@click.option('--score', '-s', help='Insert a score 0/100 to get assorted artists in playlist', default=100, required=False)
 def main(user, playlist, score):
     cli_id = '30046b20b1d443cf9a9b9175e82b0970'
     cli_sec = '02bdac6c364b4b7091cbd58248473738'

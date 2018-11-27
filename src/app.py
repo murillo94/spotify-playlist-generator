@@ -41,7 +41,7 @@ class Analyze:
 
     def find_artist_related(self, list=[]):
         list_tracks_id = []
-        list1 = [('0WOxhx4hikIsyF3CRPLC8W', 79)]
+        list1 = [('0epOFNiUfyON9EYx7Tpr6V', 79)]
         for item in list1:
             if item[0]:
                 artist = self.authenticator.artist_related_artists(item[0])
@@ -52,8 +52,13 @@ class Analyze:
                             tracks = self.authenticator.artist_top_tracks(
                                 value)
                             tracks_list = tracks['tracks'][0:1]
-                            # add para list_tracks_id, fazer random e depois criar playlist e add na playlist (user_playlist_add_tracks).
-        return list_tracks_id
+                            list_tracks_id.append(
+                                tracks_list[0]['album']['id'])
+        list_tracks_id_shuffle = random.sample(
+            list_tracks_id, len(list_tracks_id))
+        return list_tracks_id_shuffle
+
+     # criar playlist e add na playlist (user_playlist_add_tracks).
 
     def analyze(self):
         res = self.authenticator.user_playlist_tracks(

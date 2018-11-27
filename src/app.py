@@ -58,7 +58,8 @@ class Analyze:
             list_tracks_id, len(list_tracks_id))
         return list_tracks_id_shuffle
 
-     # criar playlist e add na playlist (user_playlist_add_tracks).
+    def create_playlist():
+        # criar playlist e add na playlist (user_playlist_add_tracks).
 
     def analyze(self):
         res = self.authenticator.user_playlist_tracks(

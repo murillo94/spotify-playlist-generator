@@ -46,9 +46,9 @@ class Analyze:
         return self.score
 
     def find_artist_related(self, list=[]):
+        #list_test = [('0epOFNiUfyON9EYx7Tpr6V', 79)]
         list_tracks_id = []
-        list1 = [('0epOFNiUfyON9EYx7Tpr6V', 79)]
-        for item in list1:
+        for item in list:
             if item[0]:
                 artist = self.authenticator.artist_related_artists(item[0])
                 artist_infos = artist['artists'][0]
@@ -59,15 +59,16 @@ class Analyze:
                                 value)
                             tracks_list = tracks['tracks'][0:1]
                             list_tracks_id.append(
-                                tracks_list[0]['album']['id'])
+                                tracks_list[0]['uri'])
         list_tracks_id_shuffle = random.sample(
             list_tracks_id, len(list_tracks_id))
         return list_tracks_id_shuffle
 
-    def create_playlist(self):
-        playlist = self.authenticator.user_playlist_create(
+    def create_playlist(self, tracks=[]):
+        playlist_new = self.authenticator.user_playlist_create(
             self.user_id, self.name)
-        return playlist['id']
+        self.authenticator.user_playlist_replace_tracks(
+            self.user_id, playlist_new['id'], tracks)
 
     def analyze(self):
         res = self.authenticator.user_playlist_tracks(
@@ -77,7 +78,8 @@ class Analyze:
             res = self.authenticator.next(res)
             tracks.extend(res['items'])
         artists = self.get_artist(tracks)
-        return self.find_artist_related(artists)
+        artists_related_songs = self.find_artist_related(artists)
+        self.create_playlist(artists_related_songs)
 
 
 @click.command()
@@ -85,7 +87,7 @@ class Analyze:
 @click.option('--user-playlist-id', '-upi', help='Insert a user id of playlist owner', required=True)
 @click.option('--playlist', '-p', help='Insert a playlist id', required=True)
 @click.option('--name', '-n', help='Insert a playlist name', required=True)
-@click.option('--score', '-s', help='Insert a score 0/100 to get assorted artists in playlist', default=100, required=False)
+@click.option('--score', '-s', help='Insert a score 0/100 to get assorted artists in playlist', default=50, required=False)
 def main(user, user_playlist_id, playlist, name, score):
     cli_id = '30046b20b1d443cf9a9b9175e82b0970'
     cli_sec = '02bdac6c364b4b7091cbd58248473738'

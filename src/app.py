@@ -81,9 +81,9 @@ class Analyze:
             self.user_id, playlist_new['id'], tracks)
 
         if click.confirm('Do you want to open the browser to listen your playlist created?'):
-            self.ask_to_open_browser(playlist_new['external_urls']['spotify'])
+            self.open_browser(playlist_new['external_urls']['spotify'])
 
-    def ask_to_open_browser(self, url):
+    def open_browser(self, url):
         webbrowser.open(url, new=0, autoraise=True)
 
     def analyze(self):

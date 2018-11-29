@@ -4,6 +4,7 @@ import click
 import spotipy
 import spotipy.util as util
 from spotipy.oauth2 import SpotifyClientCredentials
+from tqdm import tqdm
 
 
 class Auth:
@@ -47,7 +48,7 @@ class Analyze:
 
     def find_artist_related(self, list=[]):
         list_tracks_id = []
-        for item in list:
+        for item in tqdm(list, desc="Analyzing music"):
             if item[0]:
                 artist = self.authenticator.artist_related_artists(item[0])
                 artist_infos = artist['artists'][0]
@@ -99,6 +100,8 @@ class Analyze:
 def main(user, user_playlist_id, playlist, name, score):
     cli_id = '30046b20b1d443cf9a9b9175e82b0970'
     cli_sec = '02bdac6c364b4b7091cbd58248473738'
+
+    print('Authenticating and analyzing playlist ...')
 
     authenticate = Auth(user, cli_id, cli_sec).authenticate()
     analyze = Analyze(authenticate, user, user_playlist_id,

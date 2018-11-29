@@ -9,6 +9,7 @@ verify_ssl = true
 spotipy = "*"
 click = "*"
 spotify-playlist-generator = {editable = true,path = "."}
+tqdm = "*"
 
 [requires]
 python_version = "3.7"

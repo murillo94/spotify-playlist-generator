@@ -55,11 +55,20 @@ class Analyze:
                 if artist_infos:
                     for info, value in artist_infos.items():
                         if info == 'id':
+                            has_track_in_list = True
+                            count = 0
                             tracks = self.authenticator.artist_top_tracks(
                                 value)
-                            tracks_list = tracks['tracks'][0:1]
-                            list_tracks_id.append(
-                                tracks_list[0]['uri'])
+                            tracks_list = tracks['tracks'][0:2]
+                            while has_track_in_list and len(tracks_list) != 0:
+                                if tracks_list[0]['uri'] in list_tracks_id:
+                                    count = 0
+                                    tracks_list.pop(0)
+                                else:
+                                    count += 1
+                                    has_track_in_list = False
+                                    list_tracks_id.append(
+                                        tracks_list[count - 1]['uri'])
         list_tracks_id_shuffle = random.sample(
             list_tracks_id, len(list_tracks_id))
         return list_tracks_id_shuffle

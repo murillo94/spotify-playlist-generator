@@ -1,4 +1,5 @@
 import random
+import webbrowser
 
 import click
 import spotipy
@@ -59,7 +60,7 @@ class Analyze:
                             count = 0
                             tracks = self.authenticator.artist_top_tracks(
                                 value)
-                            tracks_list = tracks['tracks'][0:2]
+                            tracks_list = tracks['tracks'][0:5]
                             while has_track_in_list and len(tracks_list) != 0:
                                 if tracks_list[0]['uri'] in list_tracks_id:
                                     count = 0
@@ -78,6 +79,12 @@ class Analyze:
             self.user_id, self.name)
         self.authenticator.user_playlist_replace_tracks(
             self.user_id, playlist_new['id'], tracks)
+
+        if click.confirm('Do you want to open the browser to listen your playlist created?'):
+            self.ask_to_open_browser(playlist_new['external_urls']['spotify'])
+
+    def ask_to_open_browser(self, url):
+        webbrowser.open(url, new=0, autoraise=True)
 
     def analyze(self):
         res = self.authenticator.user_playlist_tracks(
@@ -101,7 +108,7 @@ def main(user, user_playlist_id, playlist, name, score):
     cli_id = '30046b20b1d443cf9a9b9175e82b0970'
     cli_sec = '02bdac6c364b4b7091cbd58248473738'
 
-    print('Authenticating and analyzing playlist ...')
+    print('Authenticating ...')
 
     authenticate = Auth(user, cli_id, cli_sec).authenticate()
     analyze = Analyze(authenticate, user, user_playlist_id,

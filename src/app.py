@@ -32,6 +32,11 @@ class Analyze:
         self.name = name
         self.score = score
 
+    def get_score(self, length=0):
+        if self.score > length:
+            return length
+        return self.score
+
     def get_artist(self, list=[]):
         results = [(x['track']['artists'][0]['id'], x['track']['popularity'])
                    for x in list if 'track' in x]
@@ -40,13 +45,7 @@ class Analyze:
         rand = random.sample(sort, length_list)
         return rand
 
-    def get_score(self, length=0):
-        if self.score > length:
-            return length
-        return self.score
-
     def find_artist_related(self, list=[]):
-        #list_test = [('0epOFNiUfyON9EYx7Tpr6V', 79)]
         list_tracks_id = []
         for item in list:
             if item[0]:
@@ -105,4 +104,4 @@ def main(user, user_playlist_id, playlist, name, score):
     analyze = Analyze(authenticate, user, user_playlist_id,
                       playlist, name, score).analyze()
 
-# analyze -u tr6amda6xwmpllo403xl9lf9c -upi 12141429536 -p 6C9TO1dfZZQTHedI8Qv18p -n testando
+# analyze -u tr6amda6xwmpllo403xl9lf9c -upi 12141429536 -p 6C9TO1dfZZQTHedI8Qv18p -n 'Playlist test'

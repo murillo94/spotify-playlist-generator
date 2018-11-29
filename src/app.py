@@ -91,9 +91,9 @@ class Analyze:
 
 
 @click.command()
-@click.option('--user', '-u', help='Insert your user id', required=True)
-@click.option('--user-playlist-id', '-upi', help='Insert a user id of playlist owner', required=True)
-@click.option('--playlist', '-p', help='Insert a playlist id', required=True)
+@click.option('--user', '-u', help='Insert your spotify user id', required=True)
+@click.option('--user-playlist-id', '-upi', help='Insert a spotify user id of playlist owner', required=True)
+@click.option('--playlist', '-p', help='Insert a spotify playlist id', required=True)
 @click.option('--name', '-n', help='Insert a playlist name', required=True)
 @click.option('--score', '-s', help='Insert a score 0/100 to get assorted artists in playlist', default=50, required=False)
 def main(user, user_playlist_id, playlist, name, score):

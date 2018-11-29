@@ -8,7 +8,7 @@ verify_ssl = true
 [packages]
 spotipy = "*"
 click = "*"
-spotify-playlist-wrapper = {editable = true,path = "."}
+spotify-playlist-generator = {editable = true,path = "."}
 
 [requires]
 python_version = "3.7"

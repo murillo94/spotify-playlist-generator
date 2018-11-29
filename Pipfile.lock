@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "a9bea56338372ad52f4412e567104953ed36b1c6451ecf2f16541e6529473ddb"
+            "sha256": "a8113409c65f4aafd44b93b01a42093ad0e4484cc8839dff04efb2d8100a152b"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -52,7 +52,7 @@
             ],
             "version": "==2.20.1"
         },
-        "spotify-playlist-wrapper": {
+        "spotify-playlist-generator": {
             "editable": true,
             "path": "."
         },

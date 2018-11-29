@@ -103,5 +103,3 @@ def main(user, user_playlist_id, playlist, name, score):
     authenticate = Auth(user, cli_id, cli_sec).authenticate()
     analyze = Analyze(authenticate, user, user_playlist_id,
                       playlist, name, score).analyze()
-
-# analyze -u tr6amda6xwmpllo403xl9lf9c -upi 12141429536 -p 6C9TO1dfZZQTHedI8Qv18p -n 'Playlist test'

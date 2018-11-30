@@ -6,7 +6,7 @@ Analyze your spotify playlists and create playlist with new songs.
 
 A tool for finding playlist and create other playlist with similar music.
 
-## Install
+### Install
 
 Using pipenv:
 
@@ -20,7 +20,7 @@ And then execute:
 pipenv shell
 ```
 
-## Usage
+### Usage
 
 Arguments:
 
@@ -35,3 +35,7 @@ Example:
 ```
 analyze -u tr6amda6xwmpllo403xl9lf9c -upi 12141429536 -p 6C9TO1dfZZQTHedI8Qv18p -n 'Playlist test'
 ```
+
+### Example
+
+![Example](./resources/example.gif)

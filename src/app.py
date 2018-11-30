@@ -1,4 +1,5 @@
 import random
+import multiprocessing
 import webbrowser
 
 import click
@@ -47,32 +48,18 @@ class Analyze:
         rand = random.sample(sort, length_list)
         return rand
 
-    def find_artist_related(self, list=[]):
-        list_tracks_id = []
-        for item in tqdm(list, desc="Analyzing music"):
-            if item[0]:
-                artist = self.authenticator.artist_related_artists(item[0])
-                artist_infos = artist['artists'][0]
-                if artist_infos:
-                    for info, value in artist_infos.items():
-                        if info == 'id':
-                            has_track_in_list = True
-                            count = 0
-                            tracks = self.authenticator.artist_top_tracks(
-                                value)
-                            tracks_list = tracks['tracks'][0:5]
-                            while has_track_in_list and len(tracks_list) != 0:
-                                if tracks_list[0]['uri'] in list_tracks_id:
-                                    count = 0
-                                    tracks_list.pop(0)
-                                else:
-                                    count += 1
-                                    has_track_in_list = False
-                                    list_tracks_id.append(
-                                        tracks_list[count - 1]['uri'])
-        list_tracks_id_shuffle = random.sample(
-            list_tracks_id, len(list_tracks_id))
-        return list_tracks_id_shuffle
+    def find_artist_related(self, id, artists_related_tracks=[]):
+        artist = self.authenticator.artist_related_artists(id)
+        artist_infos = artist['artists'][0]
+        if artist_infos:
+            for info, value in artist_infos.items():
+                if info == 'id':
+                    has_track_in_list = True
+                    count = 0
+                    tracks = self.authenticator.artist_top_tracks(
+                        value)
+                    tracks_list = tracks['tracks'][0:1]
+                    artists_related_tracks.append(tracks_list[0]['uri'])
 
     def create_playlist(self, tracks=[]):
         playlist_new = self.authenticator.user_playlist_create(
@@ -94,8 +81,24 @@ class Analyze:
             res = self.authenticator.next(res)
             tracks.extend(res['items'])
         artists = self.get_artist(tracks)
-        artists_related_songs = self.find_artist_related(artists)
-        self.create_playlist(artists_related_songs)
+
+        manager = multiprocessing.Manager()
+        artists_related_tracks = manager.list()
+        jobs = []
+
+        for i in range(0, len(artists)):
+            process = multiprocessing.Process(
+                target=self.find_artist_related, args=(artists[i][0], artists_related_tracks))
+            jobs.append(process)
+
+        for j in tqdm(jobs, desc="Analyzing music"):
+            j.start()
+
+        for j in jobs:
+            j.join()
+
+        track_unique = list(set(artists_related_tracks))
+        self.create_playlist(track_unique)
 
 
 @click.command()
@@ -103,7 +106,7 @@ class Analyze:
 @click.option('--user-playlist-id', '-upi', help='Insert a spotify user id of playlist owner', required=True)
 @click.option('--playlist', '-p', help='Insert a spotify playlist id', required=True)
 @click.option('--name', '-n', help='Insert a playlist name', required=True)
-@click.option('--score', '-s', help='Insert a score 0/100 to get assorted artists in playlist', default=50, required=False)
+@click.option('--score', '-s', help='Insert a score 0/50 to get assorted artists in playlist', default=50, type=click.IntRange(0, 50), required=False)
 def main(user, user_playlist_id, playlist, name, score):
     cli_id = '30046b20b1d443cf9a9b9175e82b0970'
     cli_sec = '02bdac6c364b4b7091cbd58248473738'

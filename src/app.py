@@ -1,3 +1,4 @@
+import sys
 import random
 import multiprocessing
 import webbrowser
@@ -35,11 +36,20 @@ class Analyze:
         self.name = name
         self.score = score
 
+    def check_list(func):
+        def valid(self, list):
+            if len(list) == 0:
+                print('Playlist need to have one music at least, please insert another!')
+                sys.exit(0)
+            return func(self, list)
+        return valid
+
     def get_score(self, length=0):
         if self.score > length:
             return length
         return self.score
 
+    @check_list
     def get_artist(self, list=[]):
         results = [(x['track']['artists'][0]['id'], x['track']['popularity'])
                    for x in list if 'track' in x]

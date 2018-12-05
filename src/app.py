@@ -15,7 +15,7 @@ class Auth:
         self.cli_secret = cli_secret
 
     def authenticate(self):
-        scopes = 'playlist-modify-public playlist-read-collaborative'
+        scopes = 'playlist-modify-public'
         token = util.prompt_for_user_token(
             self.user_id, scope=scopes, client_id=self.cli_id, client_secret=self.cli_secret, redirect_uri='http://localhost:8888/callback/')
 

@@ -28,7 +28,7 @@ Arguments:
 * `--user-playlist-id`, `-upi` - Spotify user id of playlist owner
 * `--playlist`, `-p` - Spotify playlist id
 * `--name`, `-n` - Playlist name to be created
-* `--score`, `-s` - Score 0/50 to get assorted artists in playlist
+* `--score`, `-s` - Score 0/100 to get assorted artists in playlist
 
 Example:
 

@@ -1,6 +1,4 @@
 import sys
-import random
-import multiprocessing
 import webbrowser
 
 import click
@@ -50,26 +48,27 @@ class Analyze:
         return self.score
 
     @check_list
-    def get_artist(self, list=[]):
-        results = [(x['track']['artists'][0]['id'], x['track']['popularity'])
+    def get_artist_info(self, list=[]):
+        results = [(x['track']['artists'][0]['id'], x['track']['id'], x['track']['popularity'])
                    for x in list if 'track' in x]
-        sort = sorted(results, key=lambda artist: artist[1], reverse=True)
-        length_list = self.get_score(len(sort))
-        rand = random.sample(sort, length_list)
-        return rand
+        length_list = self.get_score(len(results))
+        return {'list': results, 'limit': length_list}
 
-    def find_artist_related(self, id, artists_related_tracks=[]):
-        artist = self.authenticator.artist_related_artists(id)
-        artist_infos = artist['artists'][0]
-        if artist_infos:
-            for info, value in artist_infos.items():
-                if info == 'id':
-                    has_track_in_list = True
-                    count = 0
-                    tracks = self.authenticator.artist_top_tracks(
-                        value)
-                    tracks_list = tracks['tracks'][0:1]
-                    artists_related_tracks.append(tracks_list[0]['uri'])
+    def find_recommendation(self, **kwargs):
+        list = kwargs['list'][0:3]
+        seed_artists = []
+        seed_tracks = []
+        for item in tqdm(list, desc="Analyzing music"):
+            seed_artists.append(item[0])
+            seed_tracks.append(item[1])
+        recommendations = self.authenticator.recommendations(
+            seed_artists=seed_artists, seed_tracks=seed_tracks[0:2], seed_genres=None, limit=kwargs['limit'])
+        recommendations_tracks = [(x['id'], x['popularity'])
+                                  for x in recommendations['tracks'] if 'id' in x]
+        sort_tracks = sorted(
+            recommendations_tracks, key=lambda artist: artist[1], reverse=True)
+        tracks = [x[0] for x in sort_tracks]
+        return tracks
 
     def create_playlist(self, tracks=[]):
         playlist_new = self.authenticator.user_playlist_create(
@@ -85,30 +84,14 @@ class Analyze:
 
     def analyze(self):
         res = self.authenticator.user_playlist_tracks(
-            self.playlist_user_id, self.playlist_id, fields='next, items(track(popularity, artists(id)))')
+            self.playlist_user_id, playlist_id=self.playlist_id, fields='next, items(track(popularity, id, artists(id)))')
         tracks = res['items']
         while res['next']:
             res = self.authenticator.next(res)
             tracks.extend(res['items'])
-        artists = self.get_artist(tracks)
-
-        manager = multiprocessing.Manager()
-        artists_related_tracks = manager.list()
-        jobs = []
-
-        for i in range(0, len(artists)):
-            process = multiprocessing.Process(
-                target=self.find_artist_related, args=(artists[i][0], artists_related_tracks))
-            jobs.append(process)
-
-        for j in tqdm(jobs, desc="Analyzing music"):
-            j.start()
-
-        for j in jobs:
-            j.join()
-
-        track_unique = list(set(artists_related_tracks))
-        self.create_playlist(track_unique)
+        artists = self.get_artist_info(tracks)
+        recommendation = self.find_recommendation(**artists)
+        self.create_playlist(recommendation)
 
 
 @click.command()
@@ -116,7 +99,7 @@ class Analyze:
 @click.option('--user-playlist-id', '-upi', help='Insert a spotify user id of playlist owner', required=True)
 @click.option('--playlist', '-p', help='Insert a spotify playlist id', required=True)
 @click.option('--name', '-n', help='Insert a playlist name', required=True)
-@click.option('--score', '-s', help='Insert a score 0/50 to get assorted artists in playlist', default=50, type=click.IntRange(0, 50), required=False)
+@click.option('--score', '-s', help='Insert a score 0/100 to get assorted artists in playlist', default=100, type=click.IntRange(0, 100), required=False)
 def main(user, user_playlist_id, playlist, name, score):
     cli_id = '30046b20b1d443cf9a9b9175e82b0970'
     cli_sec = '02bdac6c364b4b7091cbd58248473738'

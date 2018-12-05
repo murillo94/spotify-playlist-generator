@@ -8,7 +8,13 @@ A tool for finding playlist and create other playlist with similar music.
 
 ### Install
 
-Using pipenv:
+Directly from [PyPI](https://pypi.org/project/spotify-playlist-generator/):
+
+```
+pip install spotify-playlist-generator
+```
+
+You can also install using pipenv:
 
 ```
 pipenv install

@@ -14,20 +14,20 @@ class Auth:
         self.cli_id = cli_id
         self.cli_secret = cli_secret
 
-    def authenticate(self):
+    def get_spotify_service(self):
         scopes = 'playlist-modify-public'
         token = util.prompt_for_user_token(
             self.user_id, scope=scopes, client_id=self.cli_id, client_secret=self.cli_secret, redirect_uri='http://localhost:8888/callback/')
 
         if token:
-            sp = spotipy.Spotify(auth=token)
-            sp.trace = False
-            return sp
+            service = spotipy.Spotify(auth=token)
+            service.trace = False
+            return service
 
 
 class Analyze:
-    def __init__(self, authenticator, user_id='', playlist_user_id='', playlist_id='',  name='', score=0):
-        self.authenticator = authenticator
+    def __init__(self, service, user_id='', playlist_user_id='', playlist_id='',  name='', score=0):
+        self.service = service
         self.user_id = user_id
         self.playlist_user_id = playlist_user_id
         self.playlist_id = playlist_id
@@ -42,26 +42,26 @@ class Analyze:
             return func(self, list)
         return valid
 
-    def get_score(self, length=0):
+    def _get_score(self, length=0):
         if self.score > length:
             return length
         return self.score
 
     @check_list
-    def get_artist_info(self, list=[]):
+    def _get_artist_info(self, list=[]):
         results = [(x['track']['artists'][0]['id'], x['track']['id'], x['track']['popularity'])
                    for x in list if 'track' in x]
-        length_list = self.get_score(len(results))
+        length_list = self._get_score(len(results))
         return {'list': results, 'limit': length_list}
 
-    def find_recommendation(self, **kwargs):
+    def _find_recommendation(self, **kwargs):
         list = kwargs['list'][0:3]
         seed_artists = []
         seed_tracks = []
         for item in tqdm(list, desc="Analyzing music"):
             seed_artists.append(item[0])
             seed_tracks.append(item[1])
-        recommendations = self.authenticator.recommendations(
+        recommendations = self.service.recommendations(
             seed_artists=seed_artists, seed_tracks=seed_tracks[0:2], seed_genres=None, limit=kwargs['limit'])
         recommendations_tracks = [(x['id'], x['popularity'])
                                   for x in recommendations['tracks'] if 'id' in x]
@@ -70,28 +70,28 @@ class Analyze:
         tracks = [x[0] for x in sort_tracks]
         return tracks
 
-    def create_playlist(self, tracks=[]):
-        playlist_new = self.authenticator.user_playlist_create(
+    def _create_playlist(self, tracks=[]):
+        playlist_new = self.service.user_playlist_create(
             self.user_id, self.name)
-        self.authenticator.user_playlist_replace_tracks(
+        self.service.user_playlist_replace_tracks(
             self.user_id, playlist_new['id'], tracks)
 
         if click.confirm('Do you want to open the browser to listen your playlist created?'):
-            self.open_browser(playlist_new['external_urls']['spotify'])
+            self._open_browser(playlist_new['external_urls']['spotify'])
 
-    def open_browser(self, url):
+    def _open_browser(self, url):
         webbrowser.open(url, new=0, autoraise=True)
 
     def analyze(self):
-        res = self.authenticator.user_playlist_tracks(
+        res = self.service.user_playlist_tracks(
             self.playlist_user_id, playlist_id=self.playlist_id, fields='next, items(track(popularity, id, artists(id)))')
         tracks = res['items']
         while res['next']:
-            res = self.authenticator.next(res)
+            res = self.service.next(res)
             tracks.extend(res['items'])
-        artists = self.get_artist_info(tracks)
-        recommendation = self.find_recommendation(**artists)
-        self.create_playlist(recommendation)
+        artists = self._get_artist_info(tracks)
+        recommendation = self._find_recommendation(**artists)
+        self._create_playlist(recommendation)
 
 
 @click.command()
@@ -105,7 +105,8 @@ def main(user, user_playlist_id, playlist, name, score):
     cli_sec = '02bdac6c364b4b7091cbd58248473738'
 
     print('Authenticating ...')
+    service = Auth(user, cli_id, cli_sec).get_spotify_service()
 
-    authenticate = Auth(user, cli_id, cli_sec).authenticate()
-    analyze = Analyze(authenticate, user, user_playlist_id,
-                      playlist, name, score).analyze()
+    print('Creating ...')
+    Analyze(service, user, user_playlist_id,
+            playlist, name, score).analyze()

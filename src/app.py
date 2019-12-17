@@ -1,14 +1,15 @@
 import sys
 import webbrowser
-
 import click
 import spotipy
 import spotipy.util as util
 from spotipy.oauth2 import SpotifyClientCredentials
 from tqdm import tqdm
 
+URL_CALLBACK = 'http://localhost:8888/callback/'
 
-class Auth:
+
+class Service:
     def __init__(self, user_id=None, cli_id=None, cli_secret=None):
         self.user_id = user_id
         self.cli_id = cli_id
@@ -17,7 +18,7 @@ class Auth:
     def get_spotify_service(self):
         scopes = 'playlist-modify-public'
         token = util.prompt_for_user_token(
-            self.user_id, scope=scopes, client_id=self.cli_id, client_secret=self.cli_secret, redirect_uri='http://localhost:8888/callback/')
+            self.user_id, scope=scopes, client_id=self.cli_id, client_secret=self.cli_secret, redirect_uri=URL_CALLBACK)
 
         if token:
             service = spotipy.Spotify(auth=token)
@@ -26,13 +27,13 @@ class Auth:
 
 
 class Analyze:
-    def __init__(self, service, user_id='', playlist_user_id='', playlist_id='',  name='', score=0):
+    def __init__(self, service, user_id='', playlist_user_id='', playlist_id='',  name='', diversity=0):
         self.service = service
         self.user_id = user_id
         self.playlist_user_id = playlist_user_id
         self.playlist_id = playlist_id
         self.name = name
-        self.score = score
+        self.diversity = diversity
 
     def check_list(func):
         def valid(self, list):
@@ -42,19 +43,22 @@ class Analyze:
             return func(self, list)
         return valid
 
-    def _get_score(self, length=0):
-        if self.score > length:
+    def _open_browser(self, url):
+        webbrowser.open(url, new=0, autoraise=True)
+
+    def _get_diversity(self, length=0):
+        if self.diversity > length:
             return length
-        return self.score
+        return self.diversity
 
     @check_list
-    def _get_artist_info(self, list=[]):
-        results = [(x['track']['artists'][0]['id'], x['track']['id'], x['track']['popularity'])
-                   for x in list if 'track' in x]
-        length_list = self._get_score(len(results))
-        return {'list': results, 'limit': length_list}
+    def _get_tracks_info(self, list=[]):
+        tracks = [(x['track']['artists'][0]['id'], x['track']['id'], x['track']['popularity'])
+                  for x in list if 'track' in x]
+        limit = self._get_diversity(len(tracks))
+        return {'list': tracks, 'limit': limit}
 
-    def _find_recommendation(self, **kwargs):
+    def _find_recommendations(self, **kwargs):
         list = kwargs['list'][0:3]
         seed_artists = []
         seed_tracks = []
@@ -79,19 +83,16 @@ class Analyze:
         if click.confirm('Do you want to open the browser to listen your playlist created?'):
             self._open_browser(playlist_new['external_urls']['spotify'])
 
-    def _open_browser(self, url):
-        webbrowser.open(url, new=0, autoraise=True)
-
     def analyze(self):
-        res = self.service.user_playlist_tracks(
+        playlist_tracks = self.service.user_playlist_tracks(
             self.playlist_user_id, playlist_id=self.playlist_id, fields='next, items(track(popularity, id, artists(id)))')
-        tracks = res['items']
-        while res['next']:
-            res = self.service.next(res)
-            tracks.extend(res['items'])
-        artists = self._get_artist_info(tracks)
-        recommendation = self._find_recommendation(**artists)
-        self._create_playlist(recommendation)
+        tracks = playlist_tracks['items']
+        while playlist_tracks['next']:
+            playlist_tracks = self.service.next(playlist_tracks)
+            tracks.extend(playlist_tracks['items'])
+        tracks_info = self._get_tracks_info(tracks)
+        recommendations = self._find_recommendations(**tracks_info)
+        self._create_playlist(recommendations)
 
 
 @click.command()
@@ -99,14 +100,14 @@ class Analyze:
 @click.option('--user-playlist-id', '-upi', help='Insert a spotify user id of playlist owner', required=True)
 @click.option('--playlist', '-p', help='Insert a spotify playlist id', required=True)
 @click.option('--name', '-n', help='Insert a playlist name', required=True)
-@click.option('--score', '-s', help='Insert a score 0/100 to get assorted artists in playlist', default=100, type=click.IntRange(0, 100), required=False)
-def main(user, user_playlist_id, playlist, name, score):
+@click.option('--diversity', '-d', help='Insert a number 0/100 to get assorted (diversity) artists in playlist', default=100, type=click.IntRange(0, 100), required=False)
+def main(user, user_playlist_id, playlist, name, diversity):
     cli_id = '30046b20b1d443cf9a9b9175e82b0970'
     cli_sec = '02bdac6c364b4b7091cbd58248473738'
 
-    print('Authenticating ...')
-    service = Auth(user, cli_id, cli_sec).get_spotify_service()
+    print('Authenticating...')
+    service = Service(user, cli_id, cli_sec).get_spotify_service()
 
-    print('Creating ...')
+    print('Creating...')
     Analyze(service, user, user_playlist_id,
-            playlist, name, score).analyze()
+            playlist, name, diversity).analyze()

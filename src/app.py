@@ -59,38 +59,39 @@ class Analyze:
         return {'list': tracks, 'limit': limit}
 
     def _find_recommendations(self, **kwargs):
-        list = kwargs['list'][0:3]
+        tracks_info = kwargs['list'][0:3]
+        limit_tracks = kwargs['limit']
         seed_artists = []
         seed_tracks = []
-        for item in tqdm(list, desc="Analyzing music"):
-            seed_artists.append(item[0])
-            seed_tracks.append(item[1])
+        for info in tqdm(tracks_info, desc="Analyzing music"):
+            seed_artists.append(info[0])
+            seed_tracks.append(info[1])
         recommendations = self.service.recommendations(
-            seed_artists=seed_artists, seed_tracks=seed_tracks[0:2], seed_genres=None, limit=kwargs['limit'])
+            seed_artists=seed_artists, seed_tracks=seed_tracks[0:2], seed_genres=None, limit=limit_tracks)
         recommendations_tracks = [(x['id'], x['popularity'])
                                   for x in recommendations['tracks'] if 'id' in x]
-        sort_tracks = sorted(
+        sorted_tracks = sorted(
             recommendations_tracks, key=lambda artist: artist[1], reverse=True)
-        tracks = [x[0] for x in sort_tracks]
+        tracks = [x[0] for x in sorted_tracks]
         return tracks
 
     def _create_playlist(self, tracks=[]):
-        playlist_new = self.service.user_playlist_create(
+        playlist = self.service.user_playlist_create(
             self.user_id, self.name)
         self.service.user_playlist_replace_tracks(
-            self.user_id, playlist_new['id'], tracks)
+            self.user_id, playlist['id'], tracks)
 
         if click.confirm('Do you want to open the browser to listen your playlist created?'):
             self._open_browser(playlist_new['external_urls']['spotify'])
 
     def analyze(self):
-        playlist_tracks = self.service.user_playlist_tracks(
+        playlist_infos = self.service.user_playlist_tracks(
             self.playlist_user_id, playlist_id=self.playlist_id, fields='next, items(track(popularity, id, artists(id)))')
-        tracks = playlist_tracks['items']
-        while playlist_tracks['next']:
-            playlist_tracks = self.service.next(playlist_tracks)
-            tracks.extend(playlist_tracks['items'])
-        tracks_info = self._get_tracks_info(tracks)
+        playlist_tracks = playlist_infos['items']
+        while playlist_infos['next']:
+            playlist_infos = self.service.next(playlist_infos)
+            playlist_tracks.extend(playlist_infos['items'])
+        tracks_info = self._get_tracks_info(playlist_tracks)
         recommendations = self._find_recommendations(**tracks_info)
         self._create_playlist(recommendations)
 

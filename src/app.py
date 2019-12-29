@@ -27,10 +27,10 @@ class Service:
 
 
 class Analyze:
-    def __init__(self, service, user_id='', playlist_user_id='', playlist_id='',  name='', diversity=0):
+    def __init__(self, service, user_id='', user_playlist_id='', playlist_id='',  name='', diversity=0):
         self.service = service
         self.user_id = user_id
-        self.playlist_user_id = playlist_user_id
+        self.user_playlist_id = user_playlist_id
         self.playlist_id = playlist_id
         self.name = name
         self.diversity = diversity
@@ -86,7 +86,7 @@ class Analyze:
 
     def analyze(self):
         playlist_infos = self.service.user_playlist_tracks(
-            self.playlist_user_id, playlist_id=self.playlist_id, fields='next, items(track(popularity, id, artists(id)))')
+            self.user_playlist_id, playlist_id=self.playlist_id, fields='next, items(track(popularity, id, artists(id)))')
         playlist_tracks = playlist_infos['items']
         while playlist_infos['next']:
             playlist_infos = self.service.next(playlist_infos)
@@ -99,7 +99,7 @@ class Analyze:
 @click.command()
 @click.option('--user', '-u', help='Insert your spotify user id', required=True)
 @click.option('--user-playlist-id', '-upi', help='Insert a spotify user id of playlist owner', required=True)
-@click.option('--playlist', '-p', help='Insert a spotify playlist id', required=True)
+@click.option('--playlist-id', '-pi', help='Insert a spotify playlist id', required=True)
 @click.option('--name', '-n', help='Insert a playlist name', required=True)
 @click.option('--diversity', '-d', help='Insert a number 0/100 to get assorted (diversity) artists in playlist', default=100, type=click.IntRange(0, 100), required=False)
 def main(user, user_playlist_id, playlist, name, diversity):
@@ -111,4 +111,4 @@ def main(user, user_playlist_id, playlist, name, diversity):
 
     print('Creating...')
     Analyze(service, user, user_playlist_id,
-            playlist, name, diversity).analyze()
+            playlist_id, name, diversity).analyze()

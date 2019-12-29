@@ -32,7 +32,7 @@ Arguments:
 
 - `--user`, `-u` - Your spotify user id
 - `--user-playlist-id`, `-upi` - Spotify user id of playlist owner
-- `--playlist`, `-p` - Spotify playlist id
+- `--playlist-id`, `-pi` - Spotify playlist id
 - `--name`, `-n` - Playlist name to be created
 - `--diversity`, `-d` - Number 0/100 to get assorted (diversity) artists in playlist
 

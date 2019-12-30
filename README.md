@@ -30,18 +30,20 @@ pipenv shell
 
 Arguments:
 
-* `--user`, `-u` - Your spotify user id
-* `--user-playlist-id`, `-upi` - Spotify user id of playlist owner
-* `--playlist`, `-p` - Spotify playlist id
-* `--name`, `-n` - Playlist name to be created
-* `--score`, `-s` - Score 0/100 to get assorted artists in playlist
+- `--user`, `-u` - Your spotify user id
+- `--user-playlist-id`, `-upi` - Spotify user id of playlist owner
+- `--playlist-id`, `-pi` - Spotify playlist id
+- `--name`, `-n` - Playlist name to be created
+- `--diversity`, `-d` - Number 0/100 to get assorted (diversity) artists in playlist
 
 Example:
 
+> You can use `spotify-playlist-generator` ou `spg` to run.
+
 ```
-analyze -u tr6amda6xwmpllo403xl9lf9c -upi 12141429536 -p 6C9TO1dfZZQTHedI8Qv18p -n 'Playlist test'
+spg -u tr6amda6xwmpllo403xl9lf9c -upi 12141429536 -pi 6C9TO1dfZZQTHedI8Qv18p -n 'Playlist test'
 ```
 
 ### Example
 
-![Example](./resources/example.gif)
+![Example](https://github.com/murillo94/spotify-playlist-generator/blob/master/resources/example.gif)

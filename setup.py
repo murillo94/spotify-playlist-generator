@@ -6,7 +6,7 @@ with open('README.md', 'r', 'utf-8') as f:
 
 setup(
     name='spotify-playlist-generator',
-    version='0.0.1',
+    version='0.0.2',
     packages=["src"],
     description='Analyze your spotify playlists songs and create playlist with new songs',
     url="https://github.com/murillo94/spotify-playlist-generator",

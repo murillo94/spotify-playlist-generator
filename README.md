@@ -38,6 +38,8 @@ Arguments:
 
 Example:
 
+> You can use `spotify-playlist-generator` ou `spg` to run.
+
 ```
 spotify-playlist-generator -u tr6amda6xwmpllo403xl9lf9c -upi 12141429536 -pi 6C9TO1dfZZQTHedI8Qv18p -n 'Playlist test'
 ```

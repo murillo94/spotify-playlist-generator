@@ -82,7 +82,7 @@ class Analyze:
             self.user_id, playlist['id'], tracks)
 
         if click.confirm('Do you want to open the browser to listen your playlist created?'):
-            self._open_browser(playlist_new['external_urls']['spotify'])
+            self._open_browser(playlist['external_urls']['spotify'])
 
     def analyze(self):
         playlist_infos = self.service.user_playlist_tracks(
@@ -102,7 +102,7 @@ class Analyze:
 @click.option('--playlist-id', '-pi', help='Insert a spotify playlist id', required=True)
 @click.option('--name', '-n', help='Insert a playlist name', required=True)
 @click.option('--diversity', '-d', help='Insert a number 0/100 to get assorted (diversity) artists in playlist', default=100, type=click.IntRange(0, 100), required=False)
-def main(user, user_playlist_id, playlist, name, diversity):
+def main(user, user_playlist_id, playlist_id, name, diversity):
     cli_id = '30046b20b1d443cf9a9b9175e82b0970'
     cli_sec = '02bdac6c364b4b7091cbd58248473738'
 
